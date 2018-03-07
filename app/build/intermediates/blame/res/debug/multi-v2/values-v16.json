@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "E:\\CloudStore\\CloudStation\\Sources\\AndroidStudio\\HangmanAndroid\\app\\build\\intermediates\\incremental\\mergeDebugResources\\merged.dir\\values-v16\\values-v16.xml",
+            "outputFile": "C:\\Users\\yeon\\AndroidStudioProjects\\HangmanAndroid\\app\\build\\intermediates\\incremental\\mergeDebugResources\\merged.dir\\values-v16\\values-v16.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\Yeon\\.gradle\\caches\\transforms-1\\files-1.1\\support-compat-26.1.0.aar\\6e07199d6aa8615daee448151d7b67f7\\res\\values-v16\\values-v16.xml",
+                    "source": "C:\\Users\\yeon\\.gradle\\caches\\transforms-1\\files-1.1\\support-compat-26.1.0.aar\\ee6c04bcb49ea63063d3a5a4adec31d0\\res\\values-v16\\values-v16.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",
@@ -14,7 +14,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\Yeon\\.gradle\\caches\\transforms-1\\files-1.1\\appcompat-v7-26.1.0.aar\\7378ef0fcd41bbfe091c321122588032\\res\\values-v16\\values-v16.xml",
+                    "source": "C:\\Users\\yeon\\.gradle\\caches\\transforms-1\\files-1.1\\appcompat-v7-26.1.0.aar\\b3e52fba9cf7eea12da80aec09b88635\\res\\values-v16\\values-v16.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",

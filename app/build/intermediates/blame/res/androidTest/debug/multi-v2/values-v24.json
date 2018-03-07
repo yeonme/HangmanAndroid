@@ -1,10 +1,20 @@
 {
     "logs": [
         {
-            "outputFile": "E:\\CloudStore\\CloudStation\\Sources\\AndroidStudio\\HangmanAndroid\\app\\build\\intermediates\\incremental\\mergeDebugAndroidTestResources\\merged.dir\\values-v24\\values-v24.xml",
+            "outputFile": "C:\\Users\\yeon\\AndroidStudioProjects\\HangmanAndroid\\app\\build\\intermediates\\incremental\\mergeDebugAndroidTestResources\\merged.dir\\values-v24\\values-v24.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\Yeon\\.gradle\\caches\\transforms-1\\files-1.1\\support-media-compat-26.1.0.aar\\58bff441d0c6505b4d8ef2434d8d21d3\\res\\values-v24\\values-v24.xml",
+                    "source": "C:\\Users\\yeon\\.gradle\\caches\\transforms-1\\files-1.1\\appcompat-v7-26.1.0.aar\\b3e52fba9cf7eea12da80aec09b88635\\res\\values-v24\\values-v24.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7",
+                        "startColumns": "4,4,4,4,4,4",
+                        "startOffsets": "55,212,347,416,480,549",
+                        "endColumns": "156,134,68,63,68,69",
+                        "endOffsets": "207,342,411,475,544,614"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\yeon\\.gradle\\caches\\transforms-1\\files-1.1\\support-media-compat-26.1.0.aar\\f1a90e4d4b9a59c7ff163fb8db3ce50a\\res\\values-v24\\values-v24.xml",
                     "from": {
                         "startLines": "2,3,4,5",
                         "startColumns": "4,4,4,4",
@@ -18,16 +28,6 @@
                         "startOffsets": "619,685,746,812",
                         "endColumns": "65,60,65,66",
                         "endOffsets": "680,741,807,874"
-                    }
-                },
-                {
-                    "source": "C:\\Users\\Yeon\\.gradle\\caches\\transforms-1\\files-1.1\\appcompat-v7-26.1.0.aar\\7378ef0fcd41bbfe091c321122588032\\res\\values-v24\\values-v24.xml",
-                    "from": {
-                        "startLines": "2,3,4,5,6,7",
-                        "startColumns": "4,4,4,4,4,4",
-                        "startOffsets": "55,212,347,416,480,549",
-                        "endColumns": "156,134,68,63,68,69",
-                        "endOffsets": "207,342,411,475,544,614"
                     }
                 }
             ]
