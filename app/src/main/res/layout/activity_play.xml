@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <TextView
+        android:id="@+id/tvHeader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="1판"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:gravity="center"
+        android:textSize="20sp"
+    />
+
+    <ImageView
+        android:id="@+id/ivFace"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvHeader"
+        app:layout_constraintRight_toLeftOf="@id/pbTime"
+        android:src="@drawable/face_neutral"
+        android:adjustViewBounds="true"
+        />
+
+    <ProgressBar
+        android:id="@+id/pbTime"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="0dp"
+        android:layout_height="30dp"
+        android:layout_margin="8dp"
+        app:layout_constraintLeft_toRightOf="@id/ivFace"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvHeader"
+        android:progress="50"
+        android:progressDrawable="@drawable/greenprogress"
+        />
+    <TextView
+        android:id="@+id/tvTime"
+        android:layout_width="0dp"
+        android:layout_height="30dp"
+        android:layout_margin="8dp"
+        app:layout_constraintLeft_toRightOf="@id/ivFace"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvHeader"
+        android:text="20.000"
+        android:gravity="center|center_vertical"
+        android:textColor="#ffffff"/>
+    <ProgressBar
+        android:id="@+id/pbLife"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="0dp"
+        android:layout_height="30dp"
+        android:layout_margin="8dp"
+        android:progress="50"
+        app:layout_constraintLeft_toRightOf="@id/ivFace"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/pbTime"
+        android:progressDrawable="@drawable/redprogress"/>
+    <TextView
+        android:id="@+id/tvLife"
+        android:layout_width="0dp"
+        android:layout_height="30dp"
+        android:layout_margin="8dp"
+        app:layout_constraintLeft_toRightOf="@id/ivFace"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/pbTime"
+        android:text="1234"
+        android:gravity="center|center_vertical"
+        android:textColor="#ffffff"/>
+
+    <TextView
+        android:id="@+id/tvAnswer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:ellipsize="none"
+        android:letterSpacing="2.0"
+        android:text="android testing ___"
+        android:textColor="#000000"
+        android:textSize="32sp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ivFace" />
+    <TableLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvAnswer"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_margin="8dp"
+        >
+        <TableRow>
+            <Button android:layout_weight="1" android:text="A"/>
+            <Button android:layout_weight="1" android:text="B"/>
+            <Button android:layout_weight="1" android:text="C"/>
+            <Button android:layout_weight="1" android:text="D"/>
+            <Button android:layout_weight="1" android:text="E"/>
+            <Button android:layout_weight="1" android:text="F"/>
+        </TableRow>
+        <TableRow>
+            <Button android:layout_weight="1" android:text="G"/>
+            <Button android:layout_weight="1" android:text="H"/>
+            <Button android:layout_weight="1" android:text="I"/>
+            <Button android:layout_weight="1" android:text="J"/>
+            <Button android:layout_weight="1" android:text="K"/>
+            <Button android:layout_weight="1" android:text="L"/>
+        </TableRow>
+        <TableRow>
+            <Button android:layout_weight="1" android:text="M"/>
+            <Button android:layout_weight="1" android:text="N"/>
+            <Button android:layout_weight="1" android:text="O"/>
+            <Button android:layout_weight="1" android:text="P"/>
+            <Button android:layout_weight="1" android:text="Q"/>
+            <Button android:layout_weight="1" android:text="R"/>
+        </TableRow>
+        <TableRow>
+            <Button android:layout_weight="1" android:text="S"/>
+            <Button android:layout_weight="1" android:text="T"/>
+            <Button android:layout_weight="1" android:text="U"/>
+            <Button android:layout_weight="1" android:text="V"/>
+            <Button android:layout_weight="1" android:text="W"/>
+            <Button android:layout_weight="1" android:text="X"/>
+        </TableRow>
+        <TableRow android:weightSum="6">
+            <Button android:layout_weight="1" android:layout_width="0dp" android:text="Y"/>
+            <Button android:layout_weight="1" android:layout_width="0dp" android:text="Z"/>
+            <View android:layout_weight="4" android:layout_width="0dp"/>
+        </TableRow>
+    </TableLayout>
+</android.support.constraint.ConstraintLayout>
