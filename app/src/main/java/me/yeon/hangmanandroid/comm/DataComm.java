@@ -17,6 +17,7 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.io.BufferedReader;
@@ -35,6 +36,7 @@ import java.util.TimeZone;
 import me.yeon.hangmanandroid.MainActivity;
 import me.yeon.hangmanandroid.PlayActivity;
 import me.yeon.hangmanandroid.vo.AsyncResult;
+import me.yeon.hangmanandroid.vo.Question;
 import me.yeon.hangmanandroid.vo.Result;
 import me.yeon.hangmanandroid.vo.User;
 
@@ -43,15 +45,24 @@ import me.yeon.hangmanandroid.vo.User;
  */
 public class DataComm {
     private static DataComm ourInstance = null;
+    final String BASEURL = "http://10.10.15.168:8888/hangman/";
+
+    final String PATH_LOGIN = "login?username=%s&key=%s";
+
+    private HttpWorker lastwork;
+    public HttpWorker getLastwork(){
+        return lastwork;
+    }
+
+    public AsyncTask.Status getStatus(){
+        return lastwork.getStatus();
+    }
 
     public static DataComm getInstance() {
         return ourInstance;
     }
-
-    final String BASEURL = "http://10.10.15.168:8888/hangman/";
-    final String PATH_LOGIN = "login?username=%s&key=%s";
-    final String PATH_TIMECOMPARE = "timecompare?fromDate=%s&key=%s";
-    final String PATH_QUESTION = "test?key=%s";
+    final String PATH_TIMECOMPARE = "timecompare?fromDate=%s&key=%s&uid=%s";
+    final String PATH_QUESTION = "test?key=%s&uid=%s";
     final String PATH_FINISH = "";
     final String PATH_SHOWREPORT = "";
 
@@ -73,8 +84,10 @@ public class DataComm {
 
     public DataComm(MainActivity ma, PlayActivity pa) {
         gson = new GsonBuilder()
-                .setDateFormat("yyyy-MM-dd@HH:mm:ss.SSSZ")
+                .setDateFormat("yyyy-MM-dd'@'HH:mm:ss.SSSZ")
+                .registerTypeAdapter(Calendar.class, new DateDeserializer())
                 .create();
+
         parser = new JsonParser();
 
         if(ma != null)
@@ -102,8 +115,8 @@ public class DataComm {
 
     public void login(String name) {
         try {
-            new HttpWorker().execute(this, "login", BASEURL + String.format(PATH_LOGIN, URLEncoder.encode(name, StandardCharsets.UTF_8.name()), APIKEY));
-        } catch (UnsupportedEncodingException e) {
+             lastwork = (HttpWorker) new HttpWorker().execute(this, "login", BASEURL + String.format(PATH_LOGIN, URLEncoder.encode(name, StandardCharsets.UTF_8.name()), APIKEY));
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -149,7 +162,7 @@ public class DataComm {
             e.printStackTrace();
         }
 
-        new HttpWorker().execute(this, "time", String.format(BASEURL + PATH_TIMECOMPARE, time, APIKEY));
+        lastwork = (HttpWorker)new HttpWorker().execute(this, "time", String.format(BASEURL + PATH_TIMECOMPARE, time, APIKEY, myid));
     }
 
     public void timePost(String result){
@@ -170,7 +183,7 @@ public class DataComm {
     }
 
     public void question(){
-        new HttpWorker().execute(this, "question", String.format(BASEURL + PATH_QUESTION, APIKEY));
+        lastwork = (HttpWorker)new HttpWorker().execute(this, "question", String.format(BASEURL + PATH_QUESTION, APIKEY, myid));
     }
 
     public void questionPost(String result){
@@ -183,20 +196,24 @@ public class DataComm {
         if(result != null) {
             Log.d("Question", result);
 
-            Result resultClass = gson.fromJson(result, Result.class);
-            if (resultClass != null) {
-                if ("ok".equals(resultClass.getStatus())) {
-                    Log.d("Question", "Success: " + resultClass.getData());
-                    myid = resultClass.getData().toString();
+            //desc / status / data ->
+            JsonObject jResult = parser.parse(result).getAsJsonObject();
+            if ("ok".equals(jResult.get("status").getAsString())) {
+                pa.commStatus = 0;
+                JsonElement jData = jResult.get("data");
+                Question q = gson.fromJson(jData, Question.class);
+                if (q != null) {
+                    Log.d("Question", q.toString());
+                    pa.readyQuestion(q);
                 } else {
-                    Log.d("Question", resultClass.getStatus());
+                    Toast.makeText(pa, "서버 응답이 있었으나, 문제가 포함되어 있지 않습니다.", Toast.LENGTH_SHORT).show();
                 }
+            }else if("question-overdue".equals(jResult.get("desc").getAsString())) {
+                pa.commStatus = 1; //입장했더니 성적표 보기 타임
+            }else{
+                Toast.makeText(pa, "서버 응답이 올바르지 않아서 문제가 시작되지 않았습니다. 잠시 후 재시도합니다.", Toast.LENGTH_SHORT).show();
             }
         }
-
-        Intent intent = new Intent(ma.getBaseContext(), PlayActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        ma.startActivity(intent);
     }
 
 }
@@ -223,8 +240,12 @@ class HttpWorker extends AsyncTask<Object, Void, AsyncResult> {
         BufferedReader reader = null;
         try {
             URL url = new URL(urlString);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(5000);
+            connection.setDoInput(true);
 
-            reader = new BufferedReader(new InputStreamReader(url.openStream()));
+            reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
             StringBuffer buffer = new StringBuffer();
             int read;
             char[] chars = new char[1024];
@@ -253,6 +274,8 @@ class HttpWorker extends AsyncTask<Object, Void, AsyncResult> {
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);
             connection.setDoInput(true);
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(5000);
 
             OutputStream out = connection.getOutputStream();
             out.write(postContent.getBytes(StandardCharsets.UTF_8));

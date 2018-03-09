@@ -67,4 +67,16 @@ public class Question {
     public Calendar getReportDate() {
         return reportDate;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj != null){
+            if(obj instanceof Question) {
+                if (((Question) obj).getWord().equals(this.getWord())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }

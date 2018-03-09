@@ -43,21 +43,26 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 EditText edtName = findViewById(R.id.tbxName);
                 String name = String.valueOf(edtName.getText());
+                SharedPreferences sharedPref = MainActivity.this.getPreferences(Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPref.edit();
                 if(name == null || name.isEmpty()){
+                    editor.remove("lastName");
                     Toast.makeText(MainActivity.this, "입력한 이름이 없으면 무작위 이름으로 진행됩니다.", Toast.LENGTH_SHORT).show();
                     name = String.valueOf(edtName.getHint());
                 } else {
                     //직접 입력한 값은 자동으로 저장한다.
-                    SharedPreferences sharedPref = MainActivity.this.getPreferences(Context.MODE_PRIVATE);
-                    SharedPreferences.Editor editor = sharedPref.edit();
                     editor.putString("lastName", name);
-                    editor.commit();
                 }
+                editor.commit();
 
                 if(comm == null)
                     comm = new DataComm(name, MainActivity.this, null);
                 else {
-                    comm.loginPost(null);
+                    if(comm.getMyid() == null) { //생성되었으나 아이디를 받지 못하면, 다시 로그인해야 한다.
+                        comm.login(name);
+                    }else { //로그인 이후 과정 진행
+                        comm.loginPost(null);
+                    }
                 }
             }
         });
