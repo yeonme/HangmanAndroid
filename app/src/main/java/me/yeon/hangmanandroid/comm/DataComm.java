@@ -45,7 +45,7 @@ import me.yeon.hangmanandroid.vo.User;
  */
 public class DataComm {
     private static DataComm ourInstance = null;
-    final String BASEURL = "http://10.10.15.168:8888/hangman/";
+    final String BASEURL = "http://test.yeon.me/HangmanServer/";
 
     final String PATH_LOGIN = "login?username=%s&key=%s";
 
