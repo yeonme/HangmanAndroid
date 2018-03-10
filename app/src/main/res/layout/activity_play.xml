@@ -85,7 +85,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:indeterminate="true"
-        android:background="#ffffff"
+        android:background="#fafafa"
         app:layout_constraintLeft_toLeftOf="@id/ivFace"
         app:layout_constraintRight_toRightOf="@id/ivFace"
         app:layout_constraintTop_toTopOf="@id/ivFace"
@@ -115,6 +115,17 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvStatus"
         app:layout_constraintRight_toRightOf="parent"
+        />
+    <TextView
+        android:id="@+id/tvDesc"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@id/wvDetail"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvAnswer"
+        android:text="Initializing..." android:layout_margin="10dp"
+        android:textSize="25sp"
         />
     <TableLayout
         android:id="@+id/layoutPlay"
@@ -165,4 +176,14 @@
             <View android:layout_weight="4" android:layout_width="0dp"/>
         </TableRow>
     </TableLayout>
+    <WebView
+        android:id="@+id/wvDetail"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvDesc"
+        />
+
 </android.support.constraint.ConstraintLayout>

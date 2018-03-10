@@ -16,9 +16,23 @@
         android:textSize="34sp"
         android:textColor="#000000"
         android:typeface="serif"
-        app:layout_constraintBottom_toTopOf="@+id/img_Main"
-        app:layout_constraintTop_toTopOf="parent" />
-
+        app:layout_constraintBottom_toTopOf="@id/tvDesc"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"/>
+    <TextView
+        android:id="@+id/tvDesc"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:text="한 글자씩 찾아가는 영어의 재미"
+        app:layout_constraintTop_toBottomOf="@id/tvMain"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/img_Main"
+        android:layout_marginLeft="8dp"
+        android:layout_marginBottom="0dp"
+        android:gravity="center"/>
     <ImageView
         android:id="@+id/img_Main"
         android:layout_width="0dp"
@@ -26,7 +40,7 @@
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="8dp"
         android:adjustViewBounds="true"
         android:scaleType="centerInside"
         android:src="@drawable/hangmanfigure"
@@ -34,7 +48,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.503"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tvDesc"
         app:layout_constraintVertical_bias="0.485" />
     <TextView
         android:layout_width="0dp"

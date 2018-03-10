@@ -8,10 +8,13 @@ import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Html;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
+import android.webkit.WebChromeClient;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.CalendarView;
 import android.widget.ImageView;
@@ -51,9 +54,10 @@ public class PlayActivity extends AppCompatActivity {
     private int life = 5;
 
     private ProgressBar pbTime, pbLife, pbInd;
-    private TextView tvTime, tvLife, tvStatus, tvHeader, tvAnswer;
+    private TextView tvTime, tvLife, tvStatus, tvHeader, tvAnswer, tvDesc;
     private ImageView ivFace;
     private TableLayout layout;
+    private WebView webView;
 
     final private String[] challenge = new String[] {
             "남들보다 빠르게 풀어보세요!",
@@ -112,6 +116,11 @@ public class PlayActivity extends AppCompatActivity {
         pbLife = findViewById(R.id.pbLife);
         pbInd = findViewById(R.id.pbInd);
         tvLife = findViewById(R.id.tvLife);
+        tvDesc = findViewById(R.id.tvDesc);
+        webView = findViewById(R.id.wvDetail);
+        webView.getSettings().setJavaScriptEnabled(true);
+        webView.getSettings().setJavaScriptCanOpenWindowsAutomatically(false);
+        webView.getSettings().setSupportMultipleWindows(false);
         pbLife.setMax(5);
         tvLife.setText("LIFE");
         dueTime = Calendar.getInstance();
@@ -130,10 +139,10 @@ public class PlayActivity extends AppCompatActivity {
         mStatusChecker.run();
     }
 
-    private int status = -1;
-    private int attempt = 0;
-    private int qnum = 0;
-    public int commStatus = 0;
+    private int status = -1; //현재 상태 (0,2: 문제 풀이, 1: 성적 확인)
+    private int attempt = 0; //통신 재시도 횟수
+    private int qnum = 0; //문제 번호
+    public int commStatus = 0; //서버의 특수 응답 기호를 저장
     private void requestView() {
         if(commStatus == 1){
             //이상상황 1: 성적표 보기 상태에서 진입
@@ -214,15 +223,17 @@ public class PlayActivity extends AppCompatActivity {
             q = currentWord;
         } else {
             //q에 정보를 담아서 호출하는 것은 DataComm이 유일하다.
+            //이 블럭은 문제당 한 번만 실행되어야 하나, 통신이 밀리면 여러 번 실행될 수 있음
             updateQuestion = true;
             attempt = 0;
             life = 5;
             lastMax = 0;
-            qnum++;
             tvHeader.setText(String.format("%d번째 문제", qnum));
 
+            tvDesc.setVisibility(View.INVISIBLE);
             layout.setVisibility(View.VISIBLE);
             tvAnswer.setGravity(Gravity.CENTER);
+            webView.setVisibility(View.INVISIBLE);
         }
         Calendar now = currentTime();
         if(q != null){
@@ -247,7 +258,9 @@ public class PlayActivity extends AppCompatActivity {
 
             if(myAnswer.equals(fullAns)){
                 //문제를 다 풀면 대문자가 전부 소문자가 된다.
-                endQuestion();
+                if(layout.getVisibility() == View.VISIBLE) {
+                    endQuestion();
+                }
             }
 
             if(q.equals(currentWord)){
@@ -258,6 +271,8 @@ public class PlayActivity extends AppCompatActivity {
                 //문제 시작 전!
                 return;
             }
+            //여기서부터 문제당 한 번만 처음 실행된다.
+            qnum++;
 
             dueTime = q.getDueDate();
             //dueTime.add(Calendar.MILLISECOND, DataComm.getInstance().timeAdv);
@@ -272,9 +287,20 @@ public class PlayActivity extends AppCompatActivity {
         }
     }
 
-    public void endQuestion(){
+    public void endQuestion() {
+        endQuestion(false);
+    }
+
+    public void endQuestion(boolean fail){
         layout.setVisibility(View.GONE);
         tvAnswer.setGravity(Gravity.CENTER | Gravity.CENTER_VERTICAL);
+        tvStatus.setText("다른 사람들이 문제 푸는 중...");
+        webView.loadUrl("http://m.endic.naver.com/search.nhn?query="+currentWord.getWord()+"&searchOption=");
+        tvDesc.setText(Html.fromHtml(fail?"정답은 "+currentWord.getWord()+"입니다.":""));
+
+        tvDesc.setVisibility(View.VISIBLE);
+        webView.setVisibility(View.VISIBLE);
+        webView.setWebChromeClient(new WebChromeClient() );
     }
 
     public void showReport(){
@@ -289,8 +315,24 @@ public class PlayActivity extends AppCompatActivity {
             if(myAnswer.equals(before)){
                 //WRONG
                 life--;
+                if(life == 0){
+                    endQuestion(true); //문제풀이 실패!
+                }
             }else {
-                updateQuestion = true;
+                //updateQuestion = true;
+                int len = myAnswer.length();
+                String fullAns = currentWord.getWord();
+                StringBuilder sb = new StringBuilder(len);
+                for (int i = 0; i < len; i++) {
+                    //PROtESt
+                    //protest
+                    if (fullAns.charAt(i) != myAnswer.charAt(i)) {
+                        sb.append("_");
+                    } else {
+                        sb.append(String.valueOf(fullAns.charAt(i)));
+                    }
+                }
+                tvAnswer.setText(sb.toString());
             }
             btn.setEnabled(false);
         }
