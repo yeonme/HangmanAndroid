@@ -6,6 +6,7 @@ package me.yeon.hangmanandroid.comm;
 
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -63,8 +64,8 @@ public class DataComm {
     }
     final String PATH_TIMECOMPARE = "timecompare?fromDate=%s&key=%s&uid=%s";
     final String PATH_QUESTION = "test?key=%s&uid=%s";
-    final String PATH_FINISH = "";
-    final String PATH_SHOWREPORT = "";
+    final String PATH_FINISH = "finish?partial=%d&tries=%d&wrong=%d&ms=%d&id=%s&name=%s&device=%s&key=%s";
+    final String PATH_SHOWREPORT = "score?id=%s&key=%s";
 
     final String APIKEY = "ae2f41f8e65344f196cb3d4cdbfd42bd"; //부정한 로그인을 방지한다.
 
@@ -72,6 +73,7 @@ public class DataComm {
     private JsonParser parser;
     private String myid;
     public int timeAdv;
+    public String device;
 
     public MainActivity ma;
     public PlayActivity pa;
@@ -95,6 +97,8 @@ public class DataComm {
         if(pa != null)
             this.pa = pa;
 
+        device = getDeviceName();
+
         ourInstance = this;
     }
 
@@ -104,6 +108,17 @@ public class DataComm {
             login(name);
         }
     }
+
+    public String getDeviceName() {
+        String manufacturer = Build.MANUFACTURER;
+        String model = Build.MODEL;
+        if (model.startsWith(manufacturer)) {
+            return model;
+        } else {
+            return manufacturer + " " + model;
+        }
+    }
+
 
     public void setMa(MainActivity ma) {
         this.ma = ma;
@@ -215,6 +230,76 @@ public class DataComm {
             }
         }
     }
+
+    public void finish(boolean partial, int tries, int wrong, int ms, String name){
+        lastwork = (HttpWorker)new HttpWorker().execute(this, "finish", String.format(BASEURL + PATH_FINISH, partial, tries, wrong,
+                ms, myid, device, APIKEY));
+    }
+
+    public void finishPost(String result){
+        if (result == null || result.isEmpty()) {
+            Log.d("Question", "no result from server!");
+            Toast.makeText(ma, "서버에 연결하기 어렵습니다.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if(result != null) {
+            Log.d("Question", result);
+
+            //desc / status / data ->
+            JsonObject jResult = parser.parse(result).getAsJsonObject();
+            if ("ok".equals(jResult.get("status").getAsString())) {
+                pa.commStatus = 0;
+                JsonElement jData = jResult.get("data");
+                Question q = gson.fromJson(jData, Question.class);
+                if (q != null) {
+                    Log.d("Question", q.toString());
+                    pa.readyQuestion(q);
+                } else {
+                    Toast.makeText(pa, "서버 응답이 있었으나, 문제가 포함되어 있지 않습니다.", Toast.LENGTH_SHORT).show();
+                }
+            }else if("question-overdue".equals(jResult.get("desc").getAsString())) {
+                pa.commStatus = 1; //입장했더니 성적표 보기 타임
+            }else{
+                Toast.makeText(pa, "서버 응답이 올바르지 않아서 문제가 시작되지 않았습니다. 잠시 후 재시도합니다.", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    public void report(){
+        lastwork = (HttpWorker)new HttpWorker().execute(this, "report", String.format(BASEURL + PATH_FINISH, myid, APIKEY));
+    }
+
+    public void reportPost(String result){
+        if (result == null || result.isEmpty()) {
+            Log.d("Report", "no result from server!");
+            Toast.makeText(ma, "서버에 연결하기 어렵습니다.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if(result != null) {
+            Log.d("Question", result);
+
+            //desc / status / data ->
+            JsonObject jResult = parser.parse(result).getAsJsonObject();
+            if ("ok".equals(jResult.get("status").getAsString())) {
+                pa.commStatus = 0;
+                JsonElement jData = jResult.get("data");
+                Question q = gson.fromJson(jData, Question.class);
+                if (q != null) {
+                    Log.d("Question", q.toString());
+                    pa.readyQuestion(q);
+                } else {
+                    Toast.makeText(pa, "서버 응답이 있었으나, 문제가 포함되어 있지 않습니다.", Toast.LENGTH_SHORT).show();
+                }
+            }else if("question-overdue".equals(jResult.get("desc").getAsString())) {
+                pa.commStatus = 1; //입장했더니 성적표 보기 타임
+            }else{
+                Toast.makeText(pa, "서버 응답이 올바르지 않아서 문제가 시작되지 않았습니다. 잠시 후 재시도합니다.", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
 
 }
 

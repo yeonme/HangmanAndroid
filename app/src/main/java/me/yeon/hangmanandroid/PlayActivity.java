@@ -15,6 +15,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.CalendarView;
 import android.widget.ImageView;
@@ -121,6 +122,7 @@ public class PlayActivity extends AppCompatActivity {
         webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setJavaScriptCanOpenWindowsAutomatically(false);
         webView.getSettings().setSupportMultipleWindows(false);
+        webView.setWebViewClient(new WebViewClient());
         pbLife.setMax(5);
         tvLife.setText("LIFE");
         dueTime = Calendar.getInstance();
@@ -141,7 +143,7 @@ public class PlayActivity extends AppCompatActivity {
 
     private int status = -1; //현재 상태 (0,2: 문제 풀이, 1: 성적 확인)
     private int attempt = 0; //통신 재시도 횟수
-    private int qnum = 0; //문제 번호
+    private int qnum = 1; //문제 번호
     public int commStatus = 0; //서버의 특수 응답 기호를 저장
     private void requestView() {
         if(commStatus == 1){
@@ -163,8 +165,15 @@ public class PlayActivity extends AppCompatActivity {
                 }
             }
         } else if(currentWord.getDueDate().before(currentTime())){
+            if(status == 1){
+                return; //이미 키보드 숨겨짐
+            }
             status = 1;
+
+            layout.setVisibility(View.GONE);
+
             dueTime = currentWord.getReportDate();
+            lastMax = 0;
             Log.d("requestView","성적");
             tvStatus.setText("정답자 순위입니다.");
             //Toast.makeText(this, "성적표 타임", Toast.LENGTH_SHORT).show();
@@ -296,11 +305,10 @@ public class PlayActivity extends AppCompatActivity {
         tvAnswer.setGravity(Gravity.CENTER | Gravity.CENTER_VERTICAL);
         tvStatus.setText("다른 사람들이 문제 푸는 중...");
         webView.loadUrl("http://m.endic.naver.com/search.nhn?query="+currentWord.getWord()+"&searchOption=");
-        tvDesc.setText(Html.fromHtml(fail?"정답은 "+currentWord.getWord()+"입니다.":""));
+        tvDesc.setText(Html.fromHtml(fail?"정답은 "+currentWord.getWord()+"입니다.":"정답입니다."));
 
         tvDesc.setVisibility(View.VISIBLE);
         webView.setVisibility(View.VISIBLE);
-        webView.setWebChromeClient(new WebChromeClient() );
     }
 
     public void showReport(){
