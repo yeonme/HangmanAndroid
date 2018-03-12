@@ -1,5 +1,7 @@
 package me.yeon.hangmanandroid;
 
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -7,11 +9,15 @@ import android.os.Handler;
 import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
+import android.support.v4.content.res.ResourcesCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
@@ -26,13 +32,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.ThreadLocalRandom;
 
 import me.yeon.hangmanandroid.comm.DataComm;
 import me.yeon.hangmanandroid.vo.Question;
 import me.yeon.hangmanandroid.vo.Result;
+import me.yeon.hangmanandroid.vo.ResultEntry;
 
 /**
  * Created by yeon on 2018-03-08 008.
@@ -130,6 +140,54 @@ public class PlayActivity extends AppCompatActivity {
         mHandler = new Handler();
     }
 
+    private void displaydialog()
+    {
+        final LayoutInflater inflator = LayoutInflater.from(this);
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setTitle("종료");
+        builder.setMessage("종료하시겠습니까?");
+        builder.setSingleChoiceItems(new String[]{
+                "예",
+                "아니오"
+        }, 0, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch(which){
+                    case 0:PlayActivity.this.finish();
+                        break;
+                    case 1: dialog.cancel();
+                        break;
+                }
+            }
+        });
+        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialog, int which)
+            {
+                PlayActivity.this.finish();
+            }
+        });
+
+        builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.create().show();
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if(keyCode == KeyEvent.KEYCODE_BACK){
+            displaydialog();
+        }
+        return true;
+    }
+
     @Override
     protected void onStart() {
         Log.d("PlayActivity","onStart()");
@@ -164,6 +222,7 @@ public class PlayActivity extends AppCompatActivity {
                     tvStatus.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
                 }
             }
+            ivFace.setImageDrawable(ResourcesCompat.getDrawable(getResources(),R.drawable.face_neutral,null));
         } else if(currentWord.getDueDate().before(currentTime())){
             if(status == 1){
                 return; //이미 키보드 숨겨짐
@@ -171,6 +230,9 @@ public class PlayActivity extends AppCompatActivity {
             status = 1;
 
             layout.setVisibility(View.GONE);
+            if(DataComm.getInstance().getStatus() != AsyncTask.Status.RUNNING) {
+                DataComm.getInstance().report();
+            }
 
             dueTime = currentWord.getReportDate();
             lastMax = 0;
@@ -265,12 +327,12 @@ public class PlayActivity extends AppCompatActivity {
                 tvAnswer.setText(sb.toString());
             }
 
-            if(myAnswer.equals(fullAns)){
+            /*if(myAnswer.equals(fullAns)){
                 //문제를 다 풀면 대문자가 전부 소문자가 된다.
                 if(layout.getVisibility() == View.VISIBLE) {
                     endQuestion();
                 }
-            }
+            }*/
 
             if(q.equals(currentWord)){
                 //문제가 바뀌지 않았다면 탈출
@@ -309,10 +371,29 @@ public class PlayActivity extends AppCompatActivity {
 
         tvDesc.setVisibility(View.VISIBLE);
         webView.setVisibility(View.VISIBLE);
+
+        ivFace.setImageDrawable(ResourcesCompat.getDrawable(getResources(),fail? R.drawable.face_bad:R.drawable.face_good,null));
+
+        DataComm.getInstance().finish(qnum < 2, attempt, 5-life);
     }
 
-    public void showReport(){
-
+    public void showReport(ArrayList<ResultEntry> h){
+        //webView.loadDataWithBaseURL("", "", "text/html", "UTF-8", "");
+        StringBuilder sb = new StringBuilder();
+        sb.append("<!doctype html><html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"></head><body><table style=\"border:1px solid black;width:100%;\"><tr><th>이름</th><th>시간</th><th>틀린 횟수</th></tr>");
+        for(ResultEntry r : h){
+            sb.append(r.getId().equals(DataComm.getInstance().getMyid())?"<tr style=\"background-color:#ccc;\">":"<tr>");
+            sb.append("<td>");
+            sb.append(r.getName());//이름
+            sb.append(r.isPartial() ? "*" : ""); //부분 시간 문제풀이시 * 표기
+            sb.append("</td><td>");
+            sb.append(String.format("%.2f초",r.getMs() / 1000.0));//기록
+            sb.append("</td><td>");
+            sb.append(r.getWrong()+"회");//틀린횟수
+            sb.append("</td></tr>");
+        }
+        sb.append("</table></html>");
+        webView.loadData(sb.toString(), "text/html; charset=utf-8", "UTF-8");
     }
 
     public void charButtonClicked(String b, Button btn){
@@ -341,6 +422,10 @@ public class PlayActivity extends AppCompatActivity {
                     }
                 }
                 tvAnswer.setText(sb.toString());
+
+                if(myAnswer.equals(fullAns)){
+                    endQuestion();
+                }
             }
             btn.setEnabled(false);
         }

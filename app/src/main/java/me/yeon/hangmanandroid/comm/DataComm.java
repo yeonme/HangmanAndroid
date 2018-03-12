@@ -17,21 +17,26 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.TimeZone;
 
 import me.yeon.hangmanandroid.MainActivity;
@@ -39,6 +44,7 @@ import me.yeon.hangmanandroid.PlayActivity;
 import me.yeon.hangmanandroid.vo.AsyncResult;
 import me.yeon.hangmanandroid.vo.Question;
 import me.yeon.hangmanandroid.vo.Result;
+import me.yeon.hangmanandroid.vo.ResultEntry;
 import me.yeon.hangmanandroid.vo.User;
 
 /**
@@ -46,7 +52,8 @@ import me.yeon.hangmanandroid.vo.User;
  */
 public class DataComm {
     private static DataComm ourInstance = null;
-    final String BASEURL = "http://test.yeon.me/HangmanServer/";
+    //final String BASEURL = "http://test.yeon.me/HangmanServer/";
+    final String BASEURL = "http://10.10.15.168:8888/hangman/";
 
     final String PATH_LOGIN = "login?username=%s&key=%s";
 
@@ -64,8 +71,8 @@ public class DataComm {
     }
     final String PATH_TIMECOMPARE = "timecompare?fromDate=%s&key=%s&uid=%s";
     final String PATH_QUESTION = "test?key=%s&uid=%s";
-    final String PATH_FINISH = "finish?partial=%d&tries=%d&wrong=%d&ms=%d&id=%s&name=%s&device=%s&key=%s";
-    final String PATH_SHOWREPORT = "score?id=%s&key=%s";
+    final String PATH_FINISH = "finish?partial=%d&tries=%d&wrong=%d&id=%s&device=%s&key=%s";
+    final String PATH_SHOWREPORT = "report?id=%s&key=%s";
 
     final String APIKEY = "ae2f41f8e65344f196cb3d4cdbfd42bd"; //부정한 로그인을 방지한다.
 
@@ -231,71 +238,73 @@ public class DataComm {
         }
     }
 
-    public void finish(boolean partial, int tries, int wrong, int ms, String name){
-        lastwork = (HttpWorker)new HttpWorker().execute(this, "finish", String.format(BASEURL + PATH_FINISH, partial, tries, wrong,
-                ms, myid, device, APIKEY));
+    public void finish(boolean partial, int tries, int wrong){
+        lastwork = (HttpWorker)new HttpWorker().execute(this, "finish", String.format(BASEURL + PATH_FINISH, partial ? 1 : 0, tries, wrong,
+                myid, device, APIKEY));
     }
 
     public void finishPost(String result){
         if (result == null || result.isEmpty()) {
-            Log.d("Question", "no result from server!");
-            Toast.makeText(ma, "서버에 연결하기 어렵습니다.", Toast.LENGTH_LONG).show();
+            Log.d("Finish", "no result from server!");
+            Toast.makeText(ma, "결과 전송에 실패했습니다.", Toast.LENGTH_LONG).show();
             return;
         }
 
         if(result != null) {
-            Log.d("Question", result);
+            Log.d("Finish", result);
 
             //desc / status / data ->
             JsonObject jResult = parser.parse(result).getAsJsonObject();
             if ("ok".equals(jResult.get("status").getAsString())) {
-                pa.commStatus = 0;
-                JsonElement jData = jResult.get("data");
-                Question q = gson.fromJson(jData, Question.class);
-                if (q != null) {
-                    Log.d("Question", q.toString());
-                    pa.readyQuestion(q);
-                } else {
-                    Toast.makeText(pa, "서버 응답이 있었으나, 문제가 포함되어 있지 않습니다.", Toast.LENGTH_SHORT).show();
-                }
-            }else if("question-overdue".equals(jResult.get("desc").getAsString())) {
-                pa.commStatus = 1; //입장했더니 성적표 보기 타임
+                //별다른 조치가 필요하지 않음
+                Log.d("Finish","결과 전송 완료!");
             }else{
-                Toast.makeText(pa, "서버 응답이 올바르지 않아서 문제가 시작되지 않았습니다. 잠시 후 재시도합니다.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(pa, "결과 전송 실패", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
     public void report(){
-        lastwork = (HttpWorker)new HttpWorker().execute(this, "report", String.format(BASEURL + PATH_FINISH, myid, APIKEY));
+        lastwork = (HttpWorker)new HttpWorker().execute(this, "report", String.format(BASEURL + PATH_SHOWREPORT, myid, APIKEY));
     }
 
     public void reportPost(String result){
         if (result == null || result.isEmpty()) {
             Log.d("Report", "no result from server!");
-            Toast.makeText(ma, "서버에 연결하기 어렵습니다.", Toast.LENGTH_LONG).show();
+            Toast.makeText(ma, "결과표 수신 실패", Toast.LENGTH_LONG).show();
             return;
         }
 
         if(result != null) {
-            Log.d("Question", result);
+            Log.d("Report", result);
 
             //desc / status / data ->
             JsonObject jResult = parser.parse(result).getAsJsonObject();
             if ("ok".equals(jResult.get("status").getAsString())) {
                 pa.commStatus = 0;
                 JsonElement jData = jResult.get("data");
-                Question q = gson.fromJson(jData, Question.class);
-                if (q != null) {
-                    Log.d("Question", q.toString());
-                    pa.readyQuestion(q);
-                } else {
-                    Toast.makeText(pa, "서버 응답이 있었으나, 문제가 포함되어 있지 않습니다.", Toast.LENGTH_SHORT).show();
+
+                ArrayList<ResultEntry> al = new ArrayList<>();
+
+                JsonArray ja = jData.getAsJsonArray();
+                if (ja != null) {
+                    int len = ja.size();
+                    for (int i=0;i<len;i++){
+                        al.add(gson.fromJson(ja.get(i), ResultEntry.class));
+                    }
                 }
-            }else if("question-overdue".equals(jResult.get("desc").getAsString())) {
-                pa.commStatus = 1; //입장했더니 성적표 보기 타임
+
+                if (ja != null) {
+                    Log.d("Report", ja.toString());
+                    pa.showReport(al);
+                } else {
+                    Toast.makeText(pa, "서버 응답이 있었으나, 결과 반환에 실패했습니다.", Toast.LENGTH_SHORT).show();
+                }
+            }else if("wait".equals(jResult.get("status").getAsString())) {
+                pa.commStatus = 2; //성적표가 준비되지 않음. 재시도 필요.
+                Log.d("Report", "성적표 준비 안 됨");
             }else{
-                Toast.makeText(pa, "서버 응답이 올바르지 않아서 문제가 시작되지 않았습니다. 잠시 후 재시도합니다.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(pa, "서버에서 결과가 반환되지 않았습니다.", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -417,6 +426,12 @@ class HttpWorker extends AsyncTask<Object, Void, AsyncResult> {
                 break;
             case "question":
                 d.questionPost(result.getResult());
+                break;
+            case "finish":
+                d.finishPost(result.getResult());
+                break;
+            case "report":
+                d.reportPost(result.getResult());
                 break;
         }
     }
